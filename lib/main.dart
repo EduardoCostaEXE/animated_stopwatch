@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'models/stopwatch_model.dart';
+import 'presenters/stopwatch_presenter.dart';
+import 'views/stopwatch_view.dart';
 
 void main() {
   runApp(AnimatedStopwatchApp());
@@ -17,14 +20,25 @@ class AnimatedStopwatchApp extends StatelessWidget {
   }
 }
 
-class StopwatchScreen extends StatefulWidget {
+class StopwatchScreen extends StatefulWidget implements StopwatchView {
   @override
   _StopwatchScreenState createState() => _StopwatchScreenState();
+
+  @override
+  void updateDisplay(String time) {
+    // Implementado no estado
+  }
 }
 
 class _StopwatchScreenState extends State<StopwatchScreen> {
-  bool isRunning = false;
-  Duration elapsedTime = Duration.zero;
+  late StopwatchPresenter presenter;
+  String displayTime = '00:00:00';
+
+  @override
+  void initState() {
+    super.initState();
+    presenter = StopwatchPresenter(StopwatchModel(), widget);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +50,7 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            _formatTime(elapsedTime),
+            displayTime,
             style: TextStyle(
               fontSize: 48.0,
               fontWeight: FontWeight.bold,
@@ -47,12 +61,20 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: _toggleStartStop,
-                child: Text(isRunning ? 'Stop' : 'Start'),
+                onPressed: () {
+                  setState(() {
+                    presenter.startOrStop();
+                  });
+                },
+                child: Text('Start/Stop'),
               ),
               SizedBox(width: 20),
               ElevatedButton(
-                onPressed: _reset,
+                onPressed: () {
+                  setState(() {
+                    presenter.reset();
+                  });
+                },
                 child: Text('Reset'),
               ),
             ],
@@ -62,25 +84,10 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
     );
   }
 
-  String _formatTime(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    final milliseconds = twoDigits(duration.inMilliseconds.remainder(1000) ~/ 10);
-    return '$minutes:$seconds:$milliseconds';
-  }
-
-  void _toggleStartStop() {
+  @override
+  void updateDisplay(String time) {
     setState(() {
-      isRunning = !isRunning;
-      // Temporário: lógica do cronômetro ainda será implementada
-    });
-  }
-
-  void _reset() {
-    setState(() {
-      elapsedTime = Duration.zero;
-      isRunning = false;
+      displayTime = time;
     });
   }
 }
