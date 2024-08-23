@@ -49,11 +49,18 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            displayTime,
-            style: TextStyle(
-              fontSize: 48.0,
-              fontWeight: FontWeight.bold,
+          AnimatedSwitcher(
+            duration: Duration(milliseconds: 300),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return ScaleTransition(child: child, scale: animation);
+            },
+            child: Text(
+              displayTime,
+              key: ValueKey<String>(displayTime),
+              style: TextStyle(
+                fontSize: 48.0,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           SizedBox(height: 20),
