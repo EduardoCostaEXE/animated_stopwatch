@@ -30,14 +30,35 @@ class StopwatchScreen extends StatefulWidget implements StopwatchView {
   }
 }
 
-class _StopwatchScreenState extends State<StopwatchScreen> {
+class _StopwatchScreenState extends State<StopwatchScreen>
+    with SingleTickerProviderStateMixin
+    implements StopwatchView {
   late StopwatchPresenter presenter;
   String displayTime = '00:00:00';
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-    presenter = StopwatchPresenter(StopwatchModel(), widget);
+    presenter = StopwatchPresenter(StopwatchModel(), this);
+    _animationController = AnimationController(
+      duration: Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void updateDisplay(String time) {
+    _animationController.forward().then((_) {
+      setState(() {
+        displayTime = time;
+        _animationController.reverse();
+      });
+    });
   }
 
   @override
@@ -49,14 +70,10 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          AnimatedSwitcher(
-            duration: Duration(milliseconds: 300),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return ScaleTransition(child: child, scale: animation);
-            },
+          FadeTransition(
+            opacity: _fadeAnimation,
             child: Text(
               displayTime,
-              key: ValueKey<String>(displayTime),
               style: TextStyle(
                 fontSize: 48.0,
                 fontWeight: FontWeight.bold,
@@ -92,9 +109,8 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
   }
 
   @override
-  void updateDisplay(String time) {
-    setState(() {
-      displayTime = time;
-    });
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 }
